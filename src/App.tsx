@@ -65,21 +65,13 @@ const SpeechRecognizer: React.FC = () => {
 
         // Get media stream
         var mimeType = 'audio/webm;codecs=opus';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
+        if (!MediaRecorder.isTypeSupported(mimeType)) {          
           setState(prev => ({
             ...prev,
             logs: [...prev.logs, "WebSocket trying to connect"],
-            currentText: `${mimeType} not supported using 'audio/webm'`
+            currentText: `${mimeType} not supported using 'audio/mp4'`
           }));
-          mimeType = 'audio/webm';
-          if (!MediaRecorder.isTypeSupported(mimeType)) {
-            setState(prev => ({
-              ...prev,
-              logs: [...prev.logs, "WebSocket trying to connect"],
-              currentText: `${mimeType} not supported using 'audio/mp4'`
-            }));
-            mimeType = 'audio/mp4';
-          }
+          mimeType = 'audio/mp4';          
         }
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: mimeType });
