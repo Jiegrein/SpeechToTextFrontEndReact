@@ -210,7 +210,7 @@ const SpeechRecognizer: React.FC = () => {
         <div className="card-body">
           <div className="card-body text-center">
             <div className="speech-recognition-container">
-              <h3><b>Speech Recorder WebM - MP4 cicd2</b></h3>
+              <h3><b>Speech Recorder</b></h3>
               <button
                 className="btn btn-success"
                 onClick={startRecording}
@@ -254,17 +254,6 @@ const SpeechRecognizer: React.FC = () => {
                 </div>
               )}
             </div>
-          </div>
-          <div className="transcription-list">
-            <h5><b>Log List</b></h5>
-            {state.logs.map((log, index) => (
-              <div key={index} className="card bg-light mb-3">
-                <div className="card-body">
-                  <span className="text">{log}</span>
-                  <br />
-                </div>
-              </div>
-            ))}
           </div>
           <div className="transcription-list">
             <h5><b>Transcription Result</b></h5>
