@@ -37,19 +37,27 @@ const SpeechRecognizer: React.FC = () => {
   });
 
   const receiveTranscribedMessage = (message: string) => {
-    const [time, text, speakerName] = message.split('|');
+    const [status, time, text, speakerName] = message.split('|');
     if (text.trim()) {
-      const entry = {
-        time,
-        text,
-        speakerName
-      };
-      setState(prev => ({
-        ...prev,
-        entries: [...prev.entries, entry],
-        currentText: text
-      }));
-    }
+      if (status == "Transcribing"){
+        setState(prev => ({
+          ...prev,
+          currentText: text
+        }));
+      }
+      else {
+        const entry = {
+          time,
+          text,
+          speakerName
+        };
+        setState(prev => ({
+          ...prev,
+          entries: [...prev.entries, entry],
+          currentText: text
+        }));
+      }
+    }      
   };
 
   const startRecording = async () => {
@@ -57,13 +65,13 @@ const SpeechRecognizer: React.FC = () => {
       setState(prev => ({
         ...prev,
         logs: [...prev.logs, "WebSocket trying to connect"],
-        currentText: "WebSocket trying to connect" 
+        currentText: "Connecting" 
       }));
       if (!state.isRecording) {
         // Create WebSocket connection
-        wsRef.current = new WebSocket(`wss://${import.meta.env.VITE_WS_URL}/ws`);
+        wsRef.current = new WebSocket(`ws://${import.meta.env.VITE_WS_URL}/ws`);
 
-        // Get media stream
+        // Get media stream 
         var mimeType = 'audio/webm;codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {          
           setState(prev => ({
@@ -95,17 +103,12 @@ const SpeechRecognizer: React.FC = () => {
           setState(prev => ({
             ...prev,
             logs: [...prev.logs, "WebSocket connection opened."],
-            currentText: "WebSocket connection opened."
+            currentText: "Connected!"
           }));
         };
 
         wsRef.current.onmessage = (e) => {
           console.log("Received message:", e.data);
-          setState(prev => ({
-            ...prev,
-            logs: [...prev.logs, "Received message:" + e.data],
-            currentText: "Received message:" + e.data
-          }));
           receiveTranscribedMessage(e.data);
         };
 
@@ -117,7 +120,6 @@ const SpeechRecognizer: React.FC = () => {
             setState(prev => ({
               ...prev,
               logs: [...prev.logs, `Blob { size: ${e.data.size}, type: "${e.data.type}" }`],
-              currentText: "WebSocket connection opened."
             }));
           }
         };
