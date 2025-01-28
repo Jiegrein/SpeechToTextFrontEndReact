@@ -57,7 +57,7 @@ const SpeechRecognizer: React.FC = () => {
       setState(prev => ({
         ...prev,
         logs: [...prev.logs, "WebSocket trying to connect"],
-        currentText: "WebSocket trying to connect"
+        currentText: "WebSocket trying to connect" 
       }));
       if (!state.isRecording) {
         // Create WebSocket connection
@@ -73,8 +73,21 @@ const SpeechRecognizer: React.FC = () => {
           }));
           mimeType = 'audio/mp4';          
         }
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: mimeType });
+        let stream: MediaStream
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              sampleRate: 16000,
+              channelCount: 1,
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+          });
+        } catch (err) {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: mimeType, audioBitsPerSecond: 96000});
 
         // Set up WebSocket handlers
         wsRef.current.onopen = () => {
@@ -110,7 +123,7 @@ const SpeechRecognizer: React.FC = () => {
         };
 
         // Start recording
-        mediaRecorderRef.current.start(1000);
+        mediaRecorderRef.current.start(2000);
 
         setState(prev => ({
           ...prev,
