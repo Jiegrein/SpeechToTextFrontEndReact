@@ -3,12 +3,14 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState, useRef, useEffect } from 'react';
 
+//For displaying the transcription
 interface TranscriptionEntry {
   time: string;
   text: string;
   speakerName: string;
 }
 
+//Managing the state of the UI
 interface SpeechRecognitionState {
   isRecording: boolean;
   isProcessing: boolean;
@@ -36,6 +38,7 @@ const SpeechRecognizer: React.FC = () => {
     baseURL: import.meta.env.VITE_BACKEND_URL,
   });
 
+  //Once received check status, only when status is Transcribed we add it to the SpeechRecognitionState
   const receiveTranscribedMessage = (message: string) => {
     const [status, time, text, speakerName] = message.split('|');
     if (text.trim()) {
@@ -71,7 +74,8 @@ const SpeechRecognizer: React.FC = () => {
         // Create WebSocket connection
         wsRef.current = new WebSocket(`ws://${import.meta.env.VITE_WS_URL}/ws`);
 
-        // Get media stream 
+        // Get media stream
+        // webm/opus is smaller, but for IOS browser it cannot use it, hence the fallback on mp4
         var mimeType = 'audio/webm;codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {          
           setState(prev => ({
@@ -83,6 +87,7 @@ const SpeechRecognizer: React.FC = () => {
         }
         let stream: MediaStream
         try {
+          // setup this since this is the required setup for azure speech api
           stream = await navigator.mediaDevices.getUserMedia({
             audio: {
               sampleRate: 16000,
@@ -107,12 +112,13 @@ const SpeechRecognizer: React.FC = () => {
           }));
         };
 
+        // What to do when ws sends the transcribed text from BE
         wsRef.current.onmessage = (e) => {
           console.log("Received message:", e.data);
           receiveTranscribedMessage(e.data);
         };
 
-        // Set up MediaRecorder handlers
+        // Set up MediaRecorder handlers and sending the data to BE using ws
         mediaRecorderRef.current.ondataavailable = (e) => {
           if (e.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(e.data);
@@ -124,7 +130,7 @@ const SpeechRecognizer: React.FC = () => {
           }
         };
 
-        // Start recording
+        // Start recording, used 2 seconds to improve speaker recognition
         mediaRecorderRef.current.start(2000);
 
         setState(prev => ({
